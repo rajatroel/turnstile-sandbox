@@ -12,11 +12,9 @@
             background-color: #f0f2f5;
             display: flex;
             justify-content: center;
-            /* Changed from center to flex-start to align the card to the top */
             align-items: flex-start; 
             min-height: 100vh;
             margin: 0;
-            /* Added 40px top padding so it isn't flush against the screen edge */
             padding: 40px 16px 16px 16px; 
             box-sizing: border-box;
         }
@@ -50,7 +48,6 @@
             margin-bottom: 16px;
         }
         .input-label {
-            /* Changed to block so it sits directly above the input */
             display: block;
             margin-bottom: 8px;
             font-size: 12px;
@@ -126,7 +123,6 @@
 
         <div class="input-group">
             <label class="input-label" for="captcha-answer">Answer</label>
-            <!-- Placeholder changed to "Enter answer" -->
             <input type="text" id="captcha-answer" placeholder="Enter answer">
         </div>
 
@@ -193,6 +189,15 @@
                 feedbackText.innerText = "Invalid answer.";
             }
         }
+
+        // --- NEW: Enter Key Submission Logic ---
+        const inputElement = document.getElementById('captcha-answer');
+        inputElement.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevents default form submission behavior
+                verifySubmission(); // Triggers the exact same logic as clicking Submit
+            }
+        });
     </script>
 </body>
 </html>

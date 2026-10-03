@@ -12,10 +12,13 @@
             background-color: #f0f2f5;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            /* Changed from center to flex-start to align the card to the top */
+            align-items: flex-start; 
+            min-height: 100vh;
             margin: 0;
-            padding: 16px;
+            /* Added 40px top padding so it isn't flush against the screen edge */
+            padding: 40px 16px 16px 16px; 
+            box-sizing: border-box;
         }
         .card {
             background: white;
@@ -44,17 +47,15 @@
             margin-bottom: 24px;
         }
         .input-group {
-            position: relative;
             margin-bottom: 16px;
         }
         .input-label {
-            position: absolute;
-            top: -8px;
-            left: 10px;
-            background: white;
-            padding: 0 6px;
-            font-size: 11px;
+            /* Changed to block so it sits directly above the input */
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
             color: #5f6368;
+            font-weight: 500;
         }
         input[type="text"] {
             width: 100%;
@@ -112,10 +113,8 @@
 <body>
 
     <div class="card">
-        <!-- Main header[span_1](start_span)[span_1](end_span) -->
         <h2>Security check</h2>
         
-        <!-- Requested subhead with emoji -->
         <p class="instructions">
             Find the telegram image with emoji 🙂, solve the math operation displayed there, and submit the result below after completing the cloudflare challenge.
         </p>
@@ -126,18 +125,15 @@
         </div>
 
         <div class="input-group">
-            <!-- Label matches the screenshot exactly[span_2](start_span)[span_2](end_span) -->
             <label class="input-label" for="captcha-answer">Answer</label>
-            <!-- Placeholder matches the screenshot exactly[span_3](start_span)[span_3](end_span) -->
-            <input type="text" id="captcha-answer" placeholder="0">
+            <!-- Placeholder changed to "Enter answer" -->
+            <input type="text" id="captcha-answer" placeholder="Enter answer">
         </div>
 
-        <!-- Submit button[span_4](start_span)[span_4](end_span) -->
         <button type="button" onclick="verifySubmission()">Submit</button>
 
         <div id="feedback-message"></div>
 
-        <!-- Timer positioned below the submit button[span_5](start_span)[span_5](end_span) -->
         <div class="timer-container">
             <div class="timer-badge" id="timer-display">Time left: 60 sec</div>
         </div>
@@ -154,7 +150,6 @@
                 timerDisplay.innerText = `Time left: ${timeLeft} sec`;
             } else {
                 clearInterval(timerInterval);
-                // Switch styling from the pill badge to a red text error on expiry
                 timerDisplay.style.backgroundColor = "transparent";
                 timerDisplay.style.color = "#d93025"; 
                 timerDisplay.style.fontSize = "13px";
@@ -175,7 +170,7 @@
             const answer = answerField.value.trim();
 
             if (timeLeft <= 0) {
-                return; // Stop accepting submissions if timer expired
+                return; 
             }
 
             if (!isHuman) {

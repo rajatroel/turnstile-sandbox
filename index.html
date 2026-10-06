@@ -4,19 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Security Check - Replica Testing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <!-- Cloudflare Turnstile API -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         * { box-sizing: border-box; }
 
-        html, body { height: 100%; }
+        html { -webkit-text-size-adjust: 100%; }
 
         body {
             margin: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #ffffff;
             color: #212529;
         }
@@ -24,44 +27,43 @@
         /* ---------- Header ---------- */
         .site-header {
             background: #fafafa;
-            padding: 18px 18px 14px 18px;
+            padding: 14px 18px 12px 18px;
             border-bottom: 2px solid #a8d5e5;
         }
         .logo {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             text-decoration: none;
             font-family: "Montserrat", "Segoe UI", Roboto, Arial, sans-serif;
-            font-size: 34px;
+            font-size: 22px;
             line-height: 1;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.4px;
         }
         .logo .brand-1 { color: #d6246e; font-weight: 400; }
         .logo .brand-2 { color: #7b3f98; font-weight: 700; }
         .logo .badge-icon {
-            width: 44px;
-            height: 44px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: linear-gradient(135deg, #3cb4e6 0%, #1f8fc9 100%);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 0 -2px;
         }
 
         /* ---------- Nav bar ---------- */
         .navbar {
             background: #f8f9fa;
-            padding: 8px 8px;
+            padding: 6px 8px;
         }
         .navbar-toggler {
-            width: 46px;
-            height: 38px;
+            width: 37px;
+            height: 27px;
             border: 1px solid #c9ccd0;
-            border-radius: 6px;
+            border-radius: 5px;
             background: transparent;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
@@ -71,19 +73,19 @@
         .navbar-toggler span::before,
         .navbar-toggler span::after {
             display: block;
-            width: 20px;
-            height: 2px;
+            width: 16px;
+            height: 1.5px;
             background: #6b7075;
             position: relative;
             content: "";
         }
-        .navbar-toggler span::before { position: absolute; top: -6px; }
-        .navbar-toggler span::after  { position: absolute; top: 6px; }
+        .navbar-toggler span::before { position: absolute; top: -5px; }
+        .navbar-toggler span::after  { position: absolute; top: 5px; }
 
         /* ---------- Main / Card ---------- */
         main {
             flex: 1;
-            padding: 36px 8px 24px 8px;
+            padding: 44px 8px 24px 8px;
         }
         .card {
             width: 100%;
@@ -91,119 +93,120 @@
             margin: 0 auto;
             background: #ffffff;
             border: 1px solid #d5d8dc;
-            border-radius: 24px;
-            padding: 24px 24px 22px 24px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-radius: 22px;
+            padding: 16px 16px 16px 16px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
         }
         .card h2 {
-            margin: 0 0 10px 0;
-            font-size: 22px;
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            line-height: 1.3;
             font-weight: 500;
             color: #212529;
         }
-        .card h2.success-title {
-            color: #198754;
-        }
+        .card h2.success-title { color: #198754; }
+        .card h2.fail-title    { color: #dc3545; }
+
         .instructions {
-            margin: 0 0 18px 0;
-            font-size: 15px;
-            line-height: 1.55;
+            margin: 0 0 10px 0;
+            font-size: 11px;
+            line-height: 1.45;
             color: #5c6166;
         }
 
         .cf-wrapper {
-            display: block;
-            margin-bottom: 22px;
+            padding: 0 9px;
+            margin-bottom: 14px;
             min-height: 65px;
         }
 
-        .input-group { margin-bottom: 14px; }
+        .input-group { margin-top: 8px; margin-bottom: 11px; }
         .input-label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 15px;
+            margin-bottom: 6px;
+            font-size: 12px;
             color: #212529;
         }
         input[type="text"] {
             width: 100%;
-            height: 50px;
-            padding: 0 14px;
-            font-size: 16px;
+            height: 32px;
+            padding: 0 12px;
+            font-size: 13px;
+            font-family: inherit;
             color: #212529;
             background: #fff;
             border: 1px solid #ced4da;
-            border-radius: 10px;
+            border-radius: 9px;
             outline: none;
             transition: border-color .15s, box-shadow .15s;
         }
         input[type="text"]::placeholder { color: #6c757d; }
         input[type="text"]:focus {
             border-color: #86b7fe;
-            box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .2);
+            box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .2);
         }
 
         .btn {
             display: block;
             width: 100%;
-            height: 50px;
-            font-size: 18px;
+            font-family: inherit;
             font-weight: 400;
-            border-radius: 10px;
             cursor: pointer;
             transition: background-color .15s, color .15s;
         }
         .btn-primary {
+            height: 32px;
+            font-size: 14px;
             background: #0d6efd;
             color: #fff;
             border: 1px solid #0d6efd;
+            border-radius: 9px;
         }
         .btn-primary:active { background: #0a58ca; }
         .btn-outline {
+            height: 26px;
+            font-size: 11px;
             background: transparent;
             color: #6c757d;
             border: 1px solid #6c757d;
-            height: 46px;
-            font-size: 17px;
+            border-radius: 4px;
         }
         .btn-outline:active { background: #6c757d; color: #fff; }
 
         #feedback-message {
             text-align: center;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 500;
-            margin-top: 12px;
-            min-height: 18px;
+            margin-top: 8px;
+            min-height: 0;
         }
+        #feedback-message:empty { display: none; }
 
         .timer-container {
             display: flex;
             justify-content: center;
             margin-top: 12px;
-            min-height: 26px;
         }
         .timer-badge {
             background: #6c757d;
             color: #fff;
-            padding: 5px 14px;
+            padding: 3px 8px;
             border-radius: 999px;
-            font-size: 13px;
+            font-size: 9.5px;
+            line-height: 1.1;
             font-weight: 700;
         }
-        .timer-badge.failed {
-            background: transparent;
-            color: #d93025;
-            font-size: 14px;
-        }
 
-        .alert-success {
-            background: #d1e7dd;
-            border: 1px solid #a3cfbb;
-            color: #0a3622;
-            border-radius: 8px;
-            padding: 16px 16px;
-            font-size: 17px;
-            margin: 16px 0;
+        .alert {
+            border: 1px solid transparent;
+            border-radius: 5px;
+            padding: 12px 12px;
+            font-size: 11px;
+            line-height: 1.3;
+            margin: 12px 0 11px 0;
         }
+        .alert-success { background: #d1e7dd; border-color: #a3cfbb; color: #0a3622; }
+        .alert-danger  { background: #f8d7da; border-color: #f1aeb5; color: #58151c; }
 
         .hidden { display: none !important; }
 
@@ -212,8 +215,8 @@
             border-top: 2px solid #a8d5e5;
             background: #fff;
             text-align: center;
-            padding: 28px 16px 36px 16px;
-            font-size: 17px;
+            padding: 18px 12px 28px 12px;
+            font-size: 14px;
             color: #212529;
         }
     </style>
@@ -225,7 +228,7 @@
         <a class="logo" href="#" aria-label="Replica Testing">
             <span class="brand-1">Replica</span>
             <span class="badge-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 12.5l4.5 4.5L19 7.5"/>
                 </svg>
             </span>
@@ -273,7 +276,14 @@
         <!-- Success card -->
         <div class="card hidden" id="success-card">
             <h2 class="success-title">Verification passed</h2>
-            <div class="alert-success">Thanks! You can return to the bot.</div>
+            <div class="alert alert-success">Thanks! You can return to the bot.</div>
+            <button type="button" class="btn btn-outline" onclick="goBackToBot()">Back to bot</button>
+        </div>
+
+        <!-- Time is up card -->
+        <div class="card hidden" id="timeup-card">
+            <h2 class="fail-title">Time is up</h2>
+            <div class="alert alert-danger">The verification was not completed in time.</div>
             <button type="button" class="btn btn-outline" onclick="goBackToBot()">Back to bot</button>
         </div>
     </main>
@@ -289,20 +299,25 @@
 
         document.getElementById('year').textContent = new Date().getFullYear();
 
+        const verifyCard  = document.getElementById('verify-card');
+        const successCard = document.getElementById('success-card');
+        const timeupCard  = document.getElementById('timeup-card');
+
         // ---------- Timer ----------
         let timeLeft = 60;
-        let verified = false;
+        let finished = false;
         const timerDisplay = document.getElementById('timer-display');
 
         const timerInterval = setInterval(() => {
-            if (verified) { clearInterval(timerInterval); return; }
+            if (finished) { clearInterval(timerInterval); return; }
             timeLeft--;
             if (timeLeft > 0) {
                 timerDisplay.innerText = `Time left: ${timeLeft} sec`;
             } else {
                 clearInterval(timerInterval);
-                timerDisplay.classList.add('failed');
-                timerDisplay.innerText = "Captcha verification failed.";
+                finished = true;
+                verifyCard.classList.add('hidden');
+                timeupCard.classList.remove('hidden');
             }
         }, 1000);
 
@@ -314,13 +329,11 @@
         }
 
         function verifySubmission() {
+            if (finished) return;
+
             const answerField = document.getElementById('captcha-answer');
             const feedbackText = document.getElementById('feedback-message');
             const answer = answerField.value.trim();
-
-            if (timeLeft <= 0) {
-                return;
-            }
 
             if (!isHuman) {
                 feedbackText.style.color = "#d93025";
@@ -335,10 +348,10 @@
             }
 
             if (answer === "7" || answer === "17") {
-                verified = true;
+                finished = true;
                 clearInterval(timerInterval);
-                document.getElementById('verify-card').classList.add('hidden');
-                document.getElementById('success-card').classList.remove('hidden');
+                verifyCard.classList.add('hidden');
+                successCard.classList.remove('hidden');
             } else {
                 feedbackText.style.color = "#d93025";
                 feedbackText.innerText = "Invalid answer.";

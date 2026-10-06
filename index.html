@@ -3,157 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Check</title>
+    <title>Security Check - Replica Testing</title>
     <!-- Cloudflare Turnstile API -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
+        * { box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; 
-            min-height: 100vh;
             margin: 0;
-            padding: 40px 16px 16px 16px; 
-            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #ffffff;
+            color: #212529;
+        }
+
+        /* ---------- Header ---------- */
+        .site-header {
+            background: #fafafa;
+            padding: 18px 18px 14px 18px;
+            border-bottom: 2px solid #a8d5e5;
+        }
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            font-family: "Montserrat", "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 34px;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+        .logo .brand-1 { color: #d6246e; font-weight: 400; }
+        .logo .brand-2 { color: #7b3f98; font-weight: 700; }
+        .logo .badge-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3cb4e6 0%, #1f8fc9 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 -2px;
+        }
+
+        /* ---------- Nav bar ---------- */
+        .navbar {
+            background: #f8f9fa;
+            padding: 8px 8px;
+        }
+        .navbar-toggler {
+            width: 46px;
+            height: 38px;
+            border: 1px solid #c9ccd0;
+            border-radius: 6px;
+            background: transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+        .navbar-toggler span,
+        .navbar-toggler span::before,
+        .navbar-toggler span::after {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #6b7075;
+            position: relative;
+            content: "";
+        }
+        .navbar-toggler span::before { position: absolute; top: -6px; }
+        .navbar-toggler span::after  { position: absolute; top: 6px; }
+
+        /* ---------- Main / Card ---------- */
+        main {
+            flex: 1;
+            padding: 36px 8px 24px 8px;
         }
         .card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             width: 100%;
-            max-width: 420px;
-            box-sizing: border-box;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #d5d8dc;
+            border-radius: 24px;
+            padding: 24px 24px 22px 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
-        h2 {
-            margin: 0 0 12px 0;
-            color: #202124;
-            font-size: 18px;
+        .card h2 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
             font-weight: 500;
+            color: #212529;
+        }
+        .card h2.success-title {
+            color: #198754;
         }
         .instructions {
-            font-size: 12px;
-            color: #5f6368;
-            line-height: 1.5;
-            margin-bottom: 20px;
+            margin: 0 0 18px 0;
+            font-size: 15px;
+            line-height: 1.55;
+            color: #5c6166;
         }
+
         .cf-wrapper {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 24px;
+            display: block;
+            margin-bottom: 22px;
+            min-height: 65px;
         }
-        .input-group {
-            margin-bottom: 16px;
-        }
+
+        .input-group { margin-bottom: 14px; }
         .input-label {
             display: block;
             margin-bottom: 8px;
-            font-size: 12px;
-            color: #5f6368;
-            font-weight: 500;
+            font-size: 15px;
+            color: #212529;
         }
         input[type="text"] {
             width: 100%;
-            padding: 14px 12px;
-            border: 2px solid #aecbfa; 
-            border-radius: 8px;
-            font-size: 14px;
-            color: #202124;
-            box-sizing: border-box;
+            height: 50px;
+            padding: 0 14px;
+            font-size: 16px;
+            color: #212529;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color .15s, box-shadow .15s;
         }
+        input[type="text"]::placeholder { color: #6c757d; }
         input[type="text"]:focus {
-            border-color: #1a73e8;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .2);
         }
-        button {
+
+        .btn {
+            display: block;
             width: 100%;
-            padding: 12px;
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 6px;
+            height: 50px;
+            font-size: 18px;
+            font-weight: 400;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color .15s, color .15s;
+        }
+        .btn-primary {
+            background: #0d6efd;
+            color: #fff;
+            border: 1px solid #0d6efd;
+        }
+        .btn-primary:active { background: #0a58ca; }
+        .btn-outline {
+            background: transparent;
+            color: #6c757d;
+            border: 1px solid #6c757d;
+            height: 46px;
+            font-size: 17px;
+        }
+        .btn-outline:active { background: #6c757d; color: #fff; }
+
+        #feedback-message {
+            text-align: center;
             font-size: 14px;
             font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            margin-top: 12px;
+            min-height: 18px;
         }
-        button:active {
-            background-color: #1557b0;
-        }
+
         .timer-container {
             display: flex;
             justify-content: center;
-            margin-top: 16px;
-            min-height: 24px;
+            margin-top: 12px;
+            min-height: 26px;
         }
         .timer-badge {
-            background-color: #757575;
-            color: white;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: 11px;
-            font-weight: 500;
-            transition: all 0.2s ease-in-out;
-        }
-        #feedback-message {
-            text-align: center;
+            background: #6c757d;
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 999px;
             font-size: 13px;
-            font-weight: 500;
-            margin-top: 12px;
-            min-height: 16px;
+            font-weight: 700;
+        }
+        .timer-badge.failed {
+            background: transparent;
+            color: #d93025;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d1e7dd;
+            border: 1px solid #a3cfbb;
+            color: #0a3622;
+            border-radius: 8px;
+            padding: 16px 16px;
+            font-size: 17px;
+            margin: 16px 0;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ---------- Footer ---------- */
+        .site-footer {
+            border-top: 2px solid #a8d5e5;
+            background: #fff;
+            text-align: center;
+            padding: 28px 16px 36px 16px;
+            font-size: 17px;
+            color: #212529;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Security check</h2>
-        
-        <p class="instructions">
-            Find the telegram image with emoji 🙂, solve the math operation displayed there, and submit the result below after completing the cloudflare challenge.
-        </p>
-        
-        <div class="cf-wrapper">
-            <!-- Testing Sitekey -->
-            <div class="cf-turnstile" data-sitekey="3x00000000000000000000FF" data-callback="onTurnstileSuccess"></div>
+    <!-- Header -->
+    <header class="site-header">
+        <a class="logo" href="#" aria-label="Replica Testing">
+            <span class="brand-1">Replica</span>
+            <span class="badge-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12.5l4.5 4.5L19 7.5"/>
+                </svg>
+            </span>
+            <span class="brand-2">testing</span>
+        </a>
+    </header>
+
+    <!-- Nav -->
+    <nav class="navbar">
+        <button class="navbar-toggler" type="button" aria-label="Toggle navigation"><span></span></button>
+    </nav>
+
+    <!-- Main -->
+    <main>
+        <!-- Verification card -->
+        <div class="card" id="verify-card">
+            <h2>Security check</h2>
+
+            <p class="instructions">
+                Find the Telegram image with emoji 😎, solve the math operation displayed there, and submit the result below after completing the Cloudflare challenge.
+            </p>
+
+            <div class="cf-wrapper">
+                <!-- Testing Sitekey: replace with your production sitekey -->
+                <div class="cf-turnstile"
+                     data-sitekey="3x00000000000000000000FF"
+                     data-size="flexible"
+                     data-callback="onTurnstileSuccess"></div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="captcha-answer">Answer</label>
+                <input type="text" id="captcha-answer" placeholder="Enter answer" autocomplete="off">
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="verifySubmission()">Submit</button>
+
+            <div id="feedback-message"></div>
+
+            <div class="timer-container">
+                <div class="timer-badge" id="timer-display">Time left: 60 sec</div>
+            </div>
         </div>
 
-        <div class="input-group">
-            <label class="input-label" for="captcha-answer">Answer</label>
-            <input type="text" id="captcha-answer" placeholder="Enter answer">
+        <!-- Success card -->
+        <div class="card hidden" id="success-card">
+            <h2 class="success-title">Verification passed</h2>
+            <div class="alert-success">Thanks! You can return to the bot.</div>
+            <button type="button" class="btn btn-outline" onclick="goBackToBot()">Back to bot</button>
         </div>
+    </main>
 
-        <button type="button" onclick="verifySubmission()">Submit</button>
-
-        <div id="feedback-message"></div>
-
-        <div class="timer-container">
-            <div class="timer-badge" id="timer-display">Time left: 60 sec</div>
-        </div>
-    </div>
+    <!-- Footer -->
+    <footer class="site-footer">
+        Copyright &copy; <span id="year">2025</span>. All rights reserved.
+    </footer>
 
     <script>
-        // Timer Logic
+        // Set this to your bot's link, e.g. "https://t.me/your_bot_username"
+        const BOT_URL = "#";
+
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // ---------- Timer ----------
         let timeLeft = 60;
+        let verified = false;
         const timerDisplay = document.getElementById('timer-display');
-        
+
         const timerInterval = setInterval(() => {
+            if (verified) { clearInterval(timerInterval); return; }
             timeLeft--;
             if (timeLeft > 0) {
                 timerDisplay.innerText = `Time left: ${timeLeft} sec`;
             } else {
                 clearInterval(timerInterval);
-                timerDisplay.style.backgroundColor = "transparent";
-                timerDisplay.style.color = "#d93025"; 
-                timerDisplay.style.fontSize = "13px";
+                timerDisplay.classList.add('failed');
                 timerDisplay.innerText = "Captcha verification failed.";
             }
         }, 1000);
 
-        // Turnstile & Validation Logic
+        // ---------- Turnstile & validation ----------
         let isHuman = false;
 
         function onTurnstileSuccess() {
@@ -166,7 +319,7 @@
             const answer = answerField.value.trim();
 
             if (timeLeft <= 0) {
-                return; 
+                return;
             }
 
             if (!isHuman) {
@@ -182,20 +335,27 @@
             }
 
             if (answer === "7" || answer === "17") {
-                feedbackText.style.color = "#188038";
-                feedbackText.innerText = "Success! Verification complete.";
+                verified = true;
+                clearInterval(timerInterval);
+                document.getElementById('verify-card').classList.add('hidden');
+                document.getElementById('success-card').classList.remove('hidden');
             } else {
                 feedbackText.style.color = "#d93025";
                 feedbackText.innerText = "Invalid answer.";
             }
         }
 
-        // --- NEW: Enter Key Submission Logic ---
-        const inputElement = document.getElementById('captcha-answer');
-        inputElement.addEventListener('keypress', function (e) {
+        function goBackToBot() {
+            if (BOT_URL && BOT_URL !== "#") {
+                window.location.href = BOT_URL;
+            }
+        }
+
+        // Enter key submits
+        document.getElementById('captcha-answer').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Prevents default form submission behavior
-                verifySubmission(); // Triggers the exact same logic as clicking Submit
+                e.preventDefault();
+                verifySubmission();
             }
         });
     </script>

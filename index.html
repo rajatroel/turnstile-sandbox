@@ -8,7 +8,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Cloudflare Turnstile script loaded cleanly -->
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script>
+        // Defined BEFORE api.js so the onload callback can never be missed
+        window.__tsReady = false;
+        window.onTurnstileLoad = function () {
+            window.__tsReady = true;
+            if (typeof window.renderTurnstile === 'function') window.renderTurnstile();
+        };
+    </script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
     <style>
         :root {
             --primary-blue: #1488c8;
@@ -255,6 +263,10 @@
             min-height: 65px;
         }
 
+        #turnstile-widget { width: 100%; min-height: 65px; }
+        .ts-status { font-size: 12.5px; color: #a72e36; text-align: center; margin: -8px 0 14px; }
+        .ts-status button { background: none; border: none; color: var(--primary-blue); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
         /* ------------------ Form Elements ------------------ */
         .input-group {
             margin-bottom: 16px;
@@ -474,15 +486,11 @@
                 Find the Telegram image with emoji &#9742;, solve the math operation displayed there, and submit the result below after completing the Cloudflare challenge.
             </p>
 
-            <!-- Native Turnstile container with automatic and explicit fallback mounting -->
+            <!-- Turnstile mounts here (explicit render, flexible width) -->
             <div class="cf-wrapper">
-                <div class="cf-turnstile"
-                     id="turnstile-widget"
-                     data-sitekey="3x00000000000000000000FF"
-                     data-callback="onTurnstileSuccess"
-                     data-expired-callback="onTurnstileExpired"
-                     data-theme="auto"></div>
+                <div id="turnstile-widget"></div>
             </div>
+            <p class="ts-status hidden" id="ts-status"></p>
 
             <div class="input-group">
                 <label class="input-label" for="captcha-answer">Answer</label>
@@ -533,7 +541,6 @@
         const captchaInput    = document.getElementById('captcha-answer');
         const timerDisplay    = document.getElementById('timer-display');
         const themeToggleBtn  = document.getElementById('themeToggleBtn');
-        const turnstileWidget = document.getElementById('turnstile-widget');
 
         let timeLeft = 60;
         let isExpired = false;
@@ -555,33 +562,63 @@
             }
         }, 1000);
 
-        // Turnstile callback functions
-        window.onTurnstileSuccess = function(token) {
-            turnstileToken = token;
-            if (alertIncorrect.textContent.trim() === "Please pass turnstile first") {
-                alertIncorrect.classList.add('hidden');
-                verifyHeading.textContent = "Security check";
-                verifyHeading.classList.remove('fail');
+        // ---------- Cloudflare Turnstile ----------
+        // Test key (always passes, visible widget). Replace with your real sitekey for production.
+        const TURNSTILE_SITEKEY = "1x00000000000000000000AA";
+        let turnstileWidgetId = null;
+        const tsStatus = document.getElementById('ts-status');
+
+        function showTsStatus(html) {
+            tsStatus.innerHTML = html;
+            tsStatus.classList.remove('hidden');
+        }
+
+        window.renderTurnstile = function () {
+            if (!window.turnstile || turnstileWidgetId !== null) return;
+            tsStatus.classList.add('hidden');
+            try {
+                turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
+                    sitekey: TURNSTILE_SITEKEY,
+                    size: 'flexible',          // fills the card width (300px min), fits phones
+                    theme: 'auto',
+                    callback: function (token) {
+                        turnstileToken = token;
+                        tsStatus.classList.add('hidden');
+                        if (alertIncorrect.textContent.trim() === "Please pass turnstile first") {
+                            alertIncorrect.classList.add('hidden');
+                            verifyHeading.textContent = "Security check";
+                            verifyHeading.classList.remove('fail');
+                        }
+                    },
+                    'expired-callback': function () { turnstileToken = null; },
+                    'timeout-callback': function () { turnstileToken = null; },
+                    'error-callback': function (code) {
+                        turnstileToken = null;
+                        showTsStatus('Challenge failed to load (' + code + '). <button type="button" onclick="resetTurnstile()">Retry</button>');
+                    }
+                });
+            } catch (e) {
+                showTsStatus('Could not start the challenge. <button type="button" onclick="location.reload()">Reload</button>');
             }
         };
 
-        window.onTurnstileExpired = function() {
-            turnstileToken = null;
-        };
+        // If api.js already finished loading before this script ran
+        if (window.__tsReady) window.renderTurnstile();
 
-        // Reset Cloudflare Turnstile
+        // If Cloudflare script is blocked / slow, tell the user instead of showing blank space
+        setTimeout(function () {
+            if (!window.turnstile) {
+                showTsStatus('Cloudflare challenge could not load. Check your connection or disable ad/content blockers, then <button type="button" onclick="location.reload()">reload</button>.');
+            }
+        }, 8000);
+
         function resetTurnstile() {
             turnstileToken = null;
-            if (window.turnstile) {
-                try {
-                    window.turnstile.reset(turnstileWidget);
-                } catch (e) {
-                    try {
-                        window.turnstile.reset();
-                    } catch (err) {
-                        console.warn("Turnstile reset:", err);
-                    }
-                }
+            tsStatus.classList.add('hidden');
+            if (window.turnstile && turnstileWidgetId !== null) {
+                try { window.turnstile.reset(turnstileWidgetId); } catch (e) { console.warn("Turnstile reset:", e); }
+            } else {
+                window.renderTurnstile();
             }
         }
 

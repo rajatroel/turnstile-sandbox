@@ -249,13 +249,29 @@
         }
 
         /* ------------------ Cloudflare Turnstile Box ------------------ */
-        .turnstile-box {
+        .cf-wrapper {
+            margin-bottom: 16px;
+            min-height: 65px;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 68px;
-            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        /* Fixed container matching standard 300x65 Turnstile size and clipping test banners */
+        .cf-container-box {
+            width: 300px;
+            height: 65px;
             overflow: hidden;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .cf-turnstile {
+            width: 300px;
+            height: 65px;
         }
 
         /* ------------------ Form Elements ------------------ */
@@ -368,7 +384,7 @@
             line-height: 1.45;
         }
 
-        /* Alert warning / incorrect answer banner */
+        /* Alert warning / status banner */
         .state-alert-warning {
             background: #fef9e7;
             border: 1px solid #f6e5a6;
@@ -474,7 +490,7 @@
         <div class="card" id="card-verify">
             <h1 class="card-title" id="verify-heading">Security check</h1>
 
-            <!-- Inline error message alert (Shown on incorrect answer) -->
+            <!-- Inline banner alert (Shows "Please pass turnstile first" or "Incorrect answer. Try again.") -->
             <div class="state-alert state-alert-warning hidden" id="alert-incorrect">
                 Incorrect answer. Try again.
             </div>
@@ -483,9 +499,16 @@
                 Find the Telegram image with emoji &#9742;, solve the math operation displayed there, and submit the result below after completing the Cloudflare challenge.
             </p>
 
-            <!-- Live Cloudflare Turnstile Challenge Container -->
-            <div class="turnstile-box">
-                <div id="cf-turnstile-widget"></div>
+            <!-- Live test Cloudflare Turnstile widget with manual interaction -->
+            <div class="cf-wrapper">
+                <div class="cf-container-box">
+                    <div class="cf-turnstile" 
+                         id="cf-turnstile" 
+                         data-sitekey="2x00000000000000000000AB" 
+                         data-size="normal" 
+                         data-callback="onTurnstileSuccess"
+                         data-expired-callback="onTurnstileExpired"></div>
+                </div>
             </div>
 
             <div class="input-group">
@@ -538,37 +561,10 @@
         const captchaInput    = document.getElementById('captcha-answer');
         const timerDisplay    = document.getElementById('timer-display');
         const themeToggleBtn  = document.getElementById('themeToggleBtn');
-        const cfStatusLabel   = document.getElementById('cf-status-label');
-
-        let turnstileWidgetId = null;
-        let isHumanVerified = false;
-
-        // Render live Cloudflare Turnstile widget using the official testing sitekey
-        window.onloadTurnstileCallback = function () {
-            if (window.turnstile) {
-                turnstileWidgetId = window.turnstile.render('#cf-turnstile-widget', {
-                    sitekey: '1x00000000000000000000AA', // Cloudflare interactive test key
-                    theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light',
-                    callback: function(token) {
-                        isHumanVerified = true;
-                    },
-                    'expired-callback': function() {
-                        isHumanVerified = false;
-                    },
-                    'error-callback': function() {
-                        isHumanVerified = false;
-                    }
-                });
-            }
-        };
-
-        // If turnstile script is already loaded
-        if (window.turnstile) {
-            window.onloadTurnstileCallback();
-        }
 
         let timeLeft = 60;
         let isExpired = false;
+        let turnstileToken = null;
 
         // Countdown timer matching screenshots
         const timerCountdown = setInterval(() => {
@@ -588,29 +584,54 @@
         }, 1000);
 
         // Turnstile callback
-        function onTurnstileComplete() {
-            isHumanVerified = true;
-            cfStatusLabel.textContent = "Verified";
+        function onTurnstileSuccess(token) {
+            turnstileToken = token;
+        }
+
+        function onTurnstileExpired() {
+            turnstileToken = null;
+        }
+
+        // Helper to reset Cloudflare Turnstile
+        function resetTurnstile() {
+            turnstileToken = null;
+            if (window.turnstile) {
+                try {
+                    window.turnstile.reset('#cf-turnstile');
+                } catch (e) {
+                    try {
+                        window.turnstile.reset();
+                    } catch (err) {
+                        console.warn('Could not reset Turnstile:', err);
+                    }
+                }
+            }
         }
 
         // Verification action
         function handleVerify() {
             if (isExpired) return;
 
+            // Automatically close mobile virtual keyboard on submit
+            if (captchaInput) {
+                captchaInput.blur();
+            }
+
             const val = captchaInput.value.trim();
 
-            // Require Turnstile check completion
-            if (!isHumanVerified) {
+            // 1. If Turnstile has NOT been completed
+            if (!turnstileToken) {
                 verifyHeading.textContent = "Verification failed";
                 verifyHeading.classList.add('fail');
-                alertIncorrect.textContent = "Please complete the Cloudflare challenge.";
+                alertIncorrect.textContent = "Please pass turnstile first";
                 alertIncorrect.classList.remove('hidden');
                 return;
             }
 
-            // Accept 10 as correct answer (in addition to 7, 17, 12, 14)
-            const acceptableAnswers = ["10", "7", "17", "12", "14"];
+            // Accept 10 as correct answer along with other valid answers
+            const acceptableAnswers = ["10", "7", "17"];
 
+            // 2. Turnstile is completed and answer is correct
             if (acceptableAnswers.includes(val)) {
                 // SUCCESS STATE
                 clearInterval(timerCountdown);
@@ -619,18 +640,14 @@
                 cardTimeout.classList.add('hidden');
                 cardSuccess.classList.remove('hidden');
             } else {
-                // FAILED / INCORRECT ATTEMPT STATE
+                // 3. Turnstile was completed but the answer is incorrect
                 verifyHeading.textContent = "Verification failed";
                 verifyHeading.classList.add('fail');
                 alertIncorrect.textContent = "Incorrect answer. Try again.";
                 alertIncorrect.classList.remove('hidden');
-                captchaInput.focus();
 
-                // Refresh / reset Turnstile challenge on incorrect answer
-                isHumanVerified = false;
-                if (window.turnstile && turnstileWidgetId !== null) {
-                    window.turnstile.reset(turnstileWidgetId);
-                }
+                // Refresh Turnstile on incorrect answer
+                resetTurnstile();
             }
         }
 
@@ -648,11 +665,6 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             themeToggleBtn.textContent = isDark ? 'Light' : 'Dark';
-
-            // Sync Turnstile theme
-            if (window.turnstile && turnstileWidgetId !== null) {
-                window.turnstile.reset(turnstileWidgetId);
-            }
         }
 
         // Enter key listener

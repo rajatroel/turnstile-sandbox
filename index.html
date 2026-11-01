@@ -683,8 +683,7 @@
                 alertIncorrect.textContent = "Incorrect answer. Try again.";
                 alertIncorrect.classList.remove('hidden');
 
-                // Clear text field & refresh Turnstile challenge
-                captchaInput.value = "";
+                // Keep the typed answer; only refresh the Turnstile challenge
                 resetTurnstile();
             }
         }

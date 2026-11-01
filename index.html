@@ -263,7 +263,8 @@
             min-height: 65px;
         }
 
-        #turnstile-widget { width: 100%; min-height: 65px; }
+        #turnstile-widget { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 65px; }
+        #turnstile-widget iframe { max-width: 100%; }
         .ts-status { font-size: 12.5px; color: #a72e36; text-align: center; margin: -8px 0 14px; }
         .ts-status button { background: none; border: none; color: var(--primary-blue); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 
@@ -563,8 +564,8 @@
         }, 1000);
 
         // ---------- Cloudflare Turnstile ----------
-        // Test key (always passes, visible widget). Replace with your real sitekey for production.
-        const TURNSTILE_SITEKEY = "1x00000000000000000000AA";
+        // Test key that forces an interactive "Verify you are human" click. Replace with your real sitekey for production.
+        const TURNSTILE_SITEKEY = "3x00000000000000000000FF";
         let turnstileWidgetId = null;
         const tsStatus = document.getElementById('ts-status');
 
@@ -579,7 +580,7 @@
             try {
                 turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
                     sitekey: TURNSTILE_SITEKEY,
-                    size: 'flexible',          // fills the card width (300px min), fits phones
+                    size: (document.getElementById('turnstile-widget').parentElement.clientWidth >= 300) ? 'normal' : 'compact',  // fixed 300px box, centered
                     theme: 'auto',
                     callback: function (token) {
                         turnstileToken = token;

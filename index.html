@@ -264,7 +264,12 @@
         }
 
         #turnstile-widget { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 65px; }
-        #turnstile-widget iframe { max-width: 100%; }
+        #turnstile-widget iframe { max-width: none; }
+        .cf-wrapper { overflow: hidden; }
+        @media (max-width: 400px) {
+            main { padding-left: 10px; padding-right: 10px; }
+            .card { padding-left: 14px; padding-right: 14px; }
+        }
         .ts-status { font-size: 12.5px; color: #a72e36; text-align: center; margin: -8px 0 14px; }
         .ts-status button { background: none; border: none; color: var(--primary-blue); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 
@@ -580,7 +585,7 @@
             try {
                 turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
                     sitekey: TURNSTILE_SITEKEY,
-                    size: (document.getElementById('turnstile-widget').parentElement.clientWidth >= 300) ? 'normal' : 'compact',  // fixed 300px box, centered
+                    size: 'normal',            // standard 300x65 checkbox
                     theme: 'auto',
                     callback: function (token) {
                         turnstileToken = token;
@@ -602,6 +607,24 @@
                 showTsStatus('Could not start the challenge. <button type="button" onclick="location.reload()">Reload</button>');
             }
         };
+
+        // Shrink the 300px widget only if the card is narrower than that
+        function fitTurnstile() {
+            const box = document.getElementById('turnstile-widget');
+            const avail = box.parentElement.clientWidth;
+            if (avail && avail < 300) {
+                const k = avail / 300;
+                box.style.transform = 'scale(' + k + ')';
+                box.style.transformOrigin = 'top center';
+                box.style.height = (65 * k) + 'px';
+                box.style.minHeight = '0';
+            } else {
+                box.style.transform = ''; box.style.height = ''; box.style.minHeight = '';
+            }
+        }
+        window.addEventListener('resize', fitTurnstile);
+        window.addEventListener('load', fitTurnstile);
+        fitTurnstile();
 
         // If api.js already finished loading before this script ran
         if (window.__tsReady) window.renderTurnstile();

@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Cloudflare Turnstile API -->
+    <!-- Cloudflare Turnstile script loaded cleanly -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         :root {
@@ -24,7 +24,6 @@
             --radius-btn: 30px;
         }
 
-        /* Dark mode support toggle */
         body.dark-theme {
             --body-bg: #0f172a;
             --card-bg: #1e293b;
@@ -89,7 +88,6 @@
             margin-right: 2px;
         }
 
-        /* Crown icon sitting on top of the SMM logo */
         .crown-icon {
             position: absolute;
             top: -12px;
@@ -128,7 +126,6 @@
             color: #e2e8f0;
         }
 
-        /* Dark / Light Mode Pill Button */
         .btn-theme-toggle {
             background: #ffffff;
             color: #2b313d;
@@ -251,27 +248,11 @@
         /* ------------------ Cloudflare Turnstile Box ------------------ */
         .cf-wrapper {
             margin-bottom: 16px;
-            min-height: 65px;
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
-        }
-
-        /* Fixed container matching standard 300x65 Turnstile size and clipping test banners */
-        .cf-container-box {
-            width: 300px;
-            height: 65px;
-            overflow: hidden;
-            border-radius: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .cf-turnstile {
-            width: 300px;
-            height: 65px;
+            min-height: 65px;
         }
 
         /* ------------------ Form Elements ------------------ */
@@ -384,7 +365,6 @@
             line-height: 1.45;
         }
 
-        /* Alert warning / status banner */
         .state-alert-warning {
             background: #fef9e7;
             border: 1px solid #f6e5a6;
@@ -392,14 +372,12 @@
             font-weight: 500;
         }
 
-        /* Alert success banner */
         .state-alert-success {
             background: #effaf3;
             border: 1px solid #c4eed5;
             color: #196a3e;
         }
 
-        /* Alert danger banner */
         .state-alert-danger {
             background: #fdf2f2;
             border: 1px solid #f9d3d5;
@@ -442,7 +420,6 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
 
-        /* Utilities */
         .hidden {
             display: none !important;
         }
@@ -455,14 +432,12 @@
         <div class="brand-container">
             <span class="logo-group">
                 <span class="brand-smm">
-                    <!-- Crown atop SMM -->
                     <svg class="crown-icon" viewBox="0 0 24 24">
                         <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1s.4-1 1-1h12c.6 0 1 .4 1 1z"/>
                     </svg>
                     SMM
                 </span>
                 <span class="brand-telegram-badge">
-                    <!-- Telegram Paper Plane Icon -->
                     <svg viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.37.75-.56 2.94-1.28 4.91-2.12 5.9-2.54 2.81-1.17 3.39-1.37 3.77-1.38.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
                     </svg>
@@ -483,7 +458,7 @@
         </button>
     </nav>
 
-    <!-- Main Verification Section -->
+    <!-- Main Section -->
     <main>
 
         <!-- CASE 1: Verification Form (Active & Initial) -->
@@ -499,16 +474,14 @@
                 Find the Telegram image with emoji &#9742;, solve the math operation displayed there, and submit the result below after completing the Cloudflare challenge.
             </p>
 
-            <!-- Live test Cloudflare Turnstile widget with manual interaction -->
+            <!-- Native Turnstile container with automatic and explicit fallback mounting -->
             <div class="cf-wrapper">
-                <div class="cf-container-box">
-                    <div class="cf-turnstile" 
-                         id="cf-turnstile" 
-                         data-sitekey="2x00000000000000000000AB" 
-                         data-size="normal" 
-                         data-callback="onTurnstileSuccess"
-                         data-expired-callback="onTurnstileExpired"></div>
-                </div>
+                <div class="cf-turnstile"
+                     id="turnstile-widget"
+                     data-sitekey="3x00000000000000000000FF"
+                     data-callback="onTurnstileSuccess"
+                     data-expired-callback="onTurnstileExpired"
+                     data-theme="auto"></div>
             </div>
 
             <div class="input-group">
@@ -549,10 +522,9 @@
     </main>
 
     <script>
-        // Telegram Bot redirect link
+        // Telegram Bot redirect URL
         const TELEGRAM_BOT_URL = "#";
 
-        // DOM elements
         const cardVerify      = document.getElementById('card-verify');
         const cardSuccess     = document.getElementById('card-success');
         const cardTimeout     = document.getElementById('card-timeout');
@@ -561,12 +533,13 @@
         const captchaInput    = document.getElementById('captcha-answer');
         const timerDisplay    = document.getElementById('timer-display');
         const themeToggleBtn  = document.getElementById('themeToggleBtn');
+        const turnstileWidget = document.getElementById('turnstile-widget');
 
         let timeLeft = 60;
         let isExpired = false;
         let turnstileToken = null;
 
-        // Countdown timer matching screenshots
+        // 60-second countdown timer
         const timerCountdown = setInterval(() => {
             if (isExpired) return;
 
@@ -576,50 +549,54 @@
             } else {
                 clearInterval(timerCountdown);
                 isExpired = true;
-                // Transition to "Time is up" state
                 cardVerify.classList.add('hidden');
                 cardSuccess.classList.add('hidden');
                 cardTimeout.classList.remove('hidden');
             }
         }, 1000);
 
-        // Turnstile callback
-        function onTurnstileSuccess(token) {
+        // Turnstile callback functions
+        window.onTurnstileSuccess = function(token) {
             turnstileToken = token;
-        }
+            if (alertIncorrect.textContent.trim() === "Please pass turnstile first") {
+                alertIncorrect.classList.add('hidden');
+                verifyHeading.textContent = "Security check";
+                verifyHeading.classList.remove('fail');
+            }
+        };
 
-        function onTurnstileExpired() {
+        window.onTurnstileExpired = function() {
             turnstileToken = null;
-        }
+        };
 
-        // Helper to reset Cloudflare Turnstile
+        // Reset Cloudflare Turnstile
         function resetTurnstile() {
             turnstileToken = null;
             if (window.turnstile) {
                 try {
-                    window.turnstile.reset('#cf-turnstile');
+                    window.turnstile.reset(turnstileWidget);
                 } catch (e) {
                     try {
                         window.turnstile.reset();
                     } catch (err) {
-                        console.warn('Could not reset Turnstile:', err);
+                        console.warn("Turnstile reset:", err);
                     }
                 }
             }
         }
 
-        // Verification action
+        // Verification logic
         function handleVerify() {
             if (isExpired) return;
 
-            // Automatically close mobile virtual keyboard on submit
+            // Immediately dismiss mobile virtual keyboard
             if (captchaInput) {
                 captchaInput.blur();
             }
 
             const val = captchaInput.value.trim();
 
-            // 1. If Turnstile has NOT been completed
+            // 1. If Turnstile is NOT solved yet
             if (!turnstileToken) {
                 verifyHeading.textContent = "Verification failed";
                 verifyHeading.classList.add('fail');
@@ -628,30 +605,29 @@
                 return;
             }
 
-            // Accept 10 as correct answer along with other valid answers
+            // Accept 10 as correct answer along with 7 and 17
             const acceptableAnswers = ["10", "7", "17"];
 
-            // 2. Turnstile is completed and answer is correct
+            // 2. Both Turnstile passed and correct answer submitted
             if (acceptableAnswers.includes(val)) {
-                // SUCCESS STATE
                 clearInterval(timerCountdown);
                 isExpired = true;
                 cardVerify.classList.add('hidden');
                 cardTimeout.classList.add('hidden');
                 cardSuccess.classList.remove('hidden');
             } else {
-                // 3. Turnstile was completed but the answer is incorrect
+                // 3. Turnstile passed but wrong answer submitted
                 verifyHeading.textContent = "Verification failed";
                 verifyHeading.classList.add('fail');
                 alertIncorrect.textContent = "Incorrect answer. Try again.";
                 alertIncorrect.classList.remove('hidden');
 
-                // Refresh Turnstile on incorrect answer
+                // Clear text field & refresh Turnstile challenge
+                captchaInput.value = "";
                 resetTurnstile();
             }
         }
 
-        // Return to Bot action
         function returnToBot() {
             if (TELEGRAM_BOT_URL && TELEGRAM_BOT_URL !== "#") {
                 window.location.href = TELEGRAM_BOT_URL;
@@ -660,14 +636,13 @@
             }
         }
 
-        // Dark / Light Theme Toggle
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             themeToggleBtn.textContent = isDark ? 'Light' : 'Dark';
         }
 
-        // Enter key listener
+        // Enter key submission handler
         captchaInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();

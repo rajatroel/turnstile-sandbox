@@ -257,12 +257,13 @@
         .cf-wrapper {
             margin-bottom: 16px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             width: 100%;
-            min-height: 65px;
         }
 
+        /* Cloudflare widget: shows "Verifying..." then "Success!" by itself */
         #turnstile-widget { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 65px; }
         #turnstile-widget iframe { max-width: none; }
         .cf-wrapper { overflow: hidden; }
@@ -489,10 +490,10 @@
             </div>
 
             <p class="instructions">
-                Find the Telegram image with emoji &#9742;, solve the math operation displayed there, and submit the result below after completing the Cloudflare challenge.
+                Find the Telegram image with emoji &#9742;, solve the math operation displayed there, and submit the result below. Cloudflare verification runs automatically.
             </p>
 
-            <!-- Turnstile mounts here (explicit render, flexible width) -->
+            <!-- Automatic Cloudflare verification (no click needed) -->
             <div class="cf-wrapper">
                 <div id="turnstile-widget"></div>
             </div>
@@ -568,10 +569,14 @@
             }
         }, 1000);
 
-        // ---------- Cloudflare Turnstile ----------
-        // Test key that forces an interactive "Verify you are human" click. Replace with your real sitekey for production.
-        const TURNSTILE_SITEKEY = "3x00000000000000000000FF";
+        // ---------- Cloudflare Turnstile (automatic / non-interactive) ----------
+        // 1x...AA = test key: visible widget that auto-verifies ("Verifying..." then "Success!") with no click.
+        // PRODUCTION: replace with your real sitekey, created in the Cloudflare dashboard with
+        // Widget Mode = "Non-interactive" (or "Managed"). Cloudflare then verifies automatically
+        // and only shows a checkbox if it truly can't decide.
+        const TURNSTILE_SITEKEY = "1x00000000000000000000AA";
         let turnstileWidgetId = null;
+        let pendingSubmit = false;
         const tsStatus = document.getElementById('ts-status');
 
         function showTsStatus(html) {
@@ -585,8 +590,11 @@
             try {
                 turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
                     sitekey: TURNSTILE_SITEKEY,
-                    size: 'normal',            // standard 300x65 checkbox
                     theme: 'auto',
+                    size: 'normal',
+                    appearance: 'always',             // always show the widget: Verifying... -> Success!
+                    execution: 'render',              // starts verifying immediately
+                    retry: 'auto',
                     callback: function (token) {
                         turnstileToken = token;
                         tsStatus.classList.add('hidden');
@@ -595,44 +603,33 @@
                             verifyHeading.textContent = "Security check";
                             verifyHeading.classList.remove('fail');
                         }
+                        // If the user already pressed Submit while verifying, continue now
+                        if (pendingSubmit) { pendingSubmit = false; handleVerify(); }
                     },
-                    'expired-callback': function () { turnstileToken = null; },
-                    'timeout-callback': function () { turnstileToken = null; },
+                    'expired-callback': function () {
+                        turnstileToken = null;
+                        try { window.turnstile.reset(turnstileWidgetId); } catch (e) {}
+                    },
+                    'timeout-callback': function () {
+                        turnstileToken = null;
+                    },
                     'error-callback': function (code) {
                         turnstileToken = null;
-                        showTsStatus('Challenge failed to load (' + code + '). <button type="button" onclick="resetTurnstile()">Retry</button>');
+                        showTsStatus('Challenge error (' + code + '). <button type="button" onclick="resetTurnstile()">Retry</button>');
                     }
                 });
             } catch (e) {
-                showTsStatus('Could not start the challenge. <button type="button" onclick="location.reload()">Reload</button>');
+                showTsStatus('Could not start the check. <button type="button" onclick="location.reload()">Reload</button>');
             }
         };
-
-        // Shrink the 300px widget only if the card is narrower than that
-        function fitTurnstile() {
-            const box = document.getElementById('turnstile-widget');
-            const avail = box.parentElement.clientWidth;
-            if (avail && avail < 300) {
-                const k = avail / 300;
-                box.style.transform = 'scale(' + k + ')';
-                box.style.transformOrigin = 'top center';
-                box.style.height = (65 * k) + 'px';
-                box.style.minHeight = '0';
-            } else {
-                box.style.transform = ''; box.style.height = ''; box.style.minHeight = '';
-            }
-        }
-        window.addEventListener('resize', fitTurnstile);
-        window.addEventListener('load', fitTurnstile);
-        fitTurnstile();
 
         // If api.js already finished loading before this script ran
         if (window.__tsReady) window.renderTurnstile();
 
-        // If Cloudflare script is blocked / slow, tell the user instead of showing blank space
+        // If Cloudflare script is blocked / slow, tell the user instead of spinning forever
         setTimeout(function () {
             if (!window.turnstile) {
-                showTsStatus('Cloudflare challenge could not load. Check your connection or disable ad/content blockers, then <button type="button" onclick="location.reload()">reload</button>.');
+                showTsStatus('Cloudflare check could not load. Check your connection or disable ad/content blockers, then <button type="button" onclick="location.reload()">reload</button>.');
             }
         }, 8000);
 
@@ -657,12 +654,10 @@
 
             const val = captchaInput.value.trim();
 
-            // 1. If Turnstile is NOT solved yet
+            // 1. Auto-verification still running: wait for it, then continue automatically
             if (!turnstileToken) {
-                verifyHeading.textContent = "Verification failed";
-                verifyHeading.classList.add('fail');
-                alertIncorrect.textContent = "Please pass turnstile first";
-                alertIncorrect.classList.remove('hidden');
+                pendingSubmit = true;
+                alertIncorrect.classList.add('hidden');
                 return;
             }
 

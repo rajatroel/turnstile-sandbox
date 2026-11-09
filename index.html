@@ -263,7 +263,7 @@
             width: 100%;
         }
 
-        /* Cloudflare widget: shows "Verifying..." then "Success!" by itself */
+        /* Cloudflare widget: shows the tap box, then "Verifying..." and "Success!" */
         #turnstile-widget { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 65px; }
         #turnstile-widget iframe { max-width: none; }
         .cf-wrapper { overflow: hidden; }
@@ -569,12 +569,12 @@
             }
         }, 1000);
 
-        // ---------- Cloudflare Turnstile (automatic / non-interactive) ----------
-        // 1x...AA = test key: visible widget that auto-verifies ("Verifying..." then "Success!") with no click.
+        // ---------- Cloudflare Turnstile (interactive: the user must tap the box) ----------
+        // 3x...FF = Cloudflare test key that FORCES an interactive challenge: the widget shows
+        // "Verify you are human" and only turns into "Success!" after the checkbox is tapped.
         // PRODUCTION: replace with your real sitekey, created in the Cloudflare dashboard with
-        // Widget Mode = "Non-interactive" (or "Managed"). Cloudflare then verifies automatically
-        // and only shows a checkbox if it truly can't decide.
-        const TURNSTILE_SITEKEY = "1x00000000000000000000AA";
+        // Widget Mode = "Managed" (it shows the checkbox when it needs the user to tap).
+        const TURNSTILE_SITEKEY = "3x00000000000000000000FF";
         let turnstileWidgetId = null;
         let pendingSubmit = false;
         const tsStatus = document.getElementById('ts-status');
@@ -592,7 +592,7 @@
                     sitekey: TURNSTILE_SITEKEY,
                     theme: 'auto',
                     size: 'normal',
-                    appearance: 'always',             // always show the widget: Verifying... -> Success!
+                    appearance: 'always',             // always show the widget: tap the box -> Verifying... -> Success!
                     execution: 'render',              // starts verifying immediately
                     retry: 'auto',
                     callback: function (token) {
